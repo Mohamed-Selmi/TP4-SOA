@@ -20,6 +20,21 @@ password: { type: 'string', minLength: 1, maxLength: 255 }
 required: ['id', 'name', 'email', 'password'],
 indexes: ['email']
 };
+const deviceSchema = {
+  title: 'device schema',
+  version: 0,
+  primaryKey: 'id',
+  type: 'object',
+  properties: {
+    id: { type: 'string', maxLength: 100 },
+    userId: { type: 'string', maxLength: 100 },
+    name: { type: 'string', minLength: 1 },
+    type: { type: 'string', enum: ['LAPTOP', 'SMARTPHONE', 'TABLET', 'SERVER'] },
+    serialNumber: { type: 'integer' },
+    status: { type: 'string', enum: ['ACTIVE', 'INACTIVE', 'MAINTENANCE'] }
+  },
+  required: ['id', 'userId', 'name', 'type', 'serialNumber', 'status']
+};
 async function hashFunction(input) {
 if (input instanceof ArrayBuffer) {
 input = Buffer.from(input);
@@ -50,6 +65,12 @@ const docs = await collection.find().exec();
 const users = docs.map((doc) => doc.toJSON());
 await fs.writeFile(SNAPSHOT_FILE, JSON.stringify(users, null, 2), 'utf8');
 }
+async function persistDevices(collection) {
+await fs.mkdir(DATA_DIR, { recursive: true });
+const docs = await collection.find().exec();
+const devices = docs.map((doc) => doc.toJSON());
+await fs.writeFile(SNAPSHOT_FILE, JSON.stringify(users, null, 2), 'utf8');
+}
 async function initDatabase() {
 const storage = wrappedValidateAjvStorage({
 storage: getRxStorageMemory()
@@ -62,16 +83,23 @@ multiInstance: false,
 hashFunction
 });
 await db.addCollections({
-users: { schema: userSchema }
+users: { schema: userSchema },
+devices : {schema: deviceSchema}
 });
-const initialUsers = await loadSnapshot();
+const initialUsers = await loadSnapshot('users');
 if (initialUsers.length > 0) {
 await db.users.bulkInsert(initialUsers);
+}
+const initialDevices = await loadSnapshot('devices');
+if (initialDevices.length > 0) {
+await db.users.bulkInsert(initialDevices);
 }
 return {
 db,
 users: db.users,
+devices: db.devices,
 persistUsers,
+persistDevices,
 createId: () => randomUUID()
 };
 }

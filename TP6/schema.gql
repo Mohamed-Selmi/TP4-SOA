@@ -10,7 +10,7 @@ enum Devicetype{
     TABLET
     SERVER
 }
-enum Status{
+enum Devicestatus{
     ACTIVE
     INACTIVE
     MAINTENANCE
@@ -21,7 +21,7 @@ userId: String!
 name: String!
 type: Devicetype!
 serialNumber: Int!
-status: Status!
+status: Devicestatus!
 }
 type Query {
 user(id: String!): User
@@ -31,4 +31,7 @@ type Mutation {
 addUser(name: String!, email: String!, password: String!): User
 updateUser(id: String!, name: String!, email: String!, password: String!): User
 deleteUser(id: String!): Boolean!
+addDevice(userId:String!,name: String!, type: Devicetype!, serialNumber: Int!,status:Devicestatus!): Device
+updateDevice(id: String!, userId:String!,name: String!, type: Devicetype!, serialNumber: Int!,status:Devicestatus!): Device
+deleteDevice(id: String!): Boolean!
 }

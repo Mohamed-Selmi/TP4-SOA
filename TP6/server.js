@@ -5,6 +5,8 @@ const { buildSchema } = require('graphql');
 const { createHandler } = require('graphql-http/lib/use/express');
 const dbPromise = require('./db');
 const userResolver = require('./userResolver');
+const deviceResolver = require('./deviceResolver');
+
 const app = express();
 const port = 5000;
 const schema = buildSchema(
@@ -70,6 +72,52 @@ return res.status(404).json({ error: 'Utilisateur non trouvé' });
 }
 res.json({ message: 'success' });
 });
+
+
+app.get('/devices', async (req, res) => {
+const { devices } = await dbPromise;
+const docs = await devices.find().exec();
+res.json(docs.map((doc) => doc.toJSON()));
+});
+app.get('/devices/:id', async (req, res) => {
+const { devices } = await dbPromise;
+const doc = await users.findOne(req.params.id).exec();
+if (!doc) {
+return res.status(404).json({ error: 'Utilisateur non trouvé' });
+}
+res.json(doc.toJSON());
+});
+app.post('/devices', async (req, res) => {
+try {
+const created = await deviceResolver.addDevice(req.body);
+res.status(201).json(created);
+} catch (error) {
+res.status(400).json({ error: error.message });
+}
+});
+app.put('/devices/:id', async (req, res) => {
+try {
+const updated = await deviceResolver.updateDevice({
+id: req.params.id,
+...req.body
+});
+if (!updated) {
+return res.status(404).json({ error: 'Device non trouvé' });
+}
+res.json(updated);
+} catch (error) {
+res.status(400).json({ error: error.message });
+}
+});
+app.delete('/devices/:id', async (req, res) => {
+const deleted = await deviceResolver.deleteDevice({ id: req.params.id });
+if (!deleted) {
+return res.status(404).json({ error: 'Device non trouvé' });
+}
+res.json({ message: 'success' });
+});
+
+
 app.listen(port, () => {
 console.log(`Serveur démarré sur http://localhost:${port}`);
 console.log('GraphQL disponible sur http://localhost:5000/graphql');
