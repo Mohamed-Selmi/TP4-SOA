@@ -1,0 +1,34 @@
+type User {
+id: String!
+name: String!
+email: String!
+password: String!
+}
+enum Devicetype{
+    LAPTOP
+    SMARTPHONE
+    TABLET
+    SERVER
+}
+enum Status{
+    ACTIVE
+    INACTIVE
+    MAINTENANCE
+}
+type Device{
+id: String!
+userId: String!
+name: String!
+type: Devicetype!
+serialNumber: Int!
+status: Status!
+}
+type Query {
+user(id: String!): User
+users: [User!]!
+}
+type Mutation {
+addUser(name: String!, email: String!, password: String!): User
+updateUser(id: String!, name: String!, email: String!, password: String!): User
+deleteUser(id: String!): Boolean!
+}
